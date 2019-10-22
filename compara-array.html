@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>col duolingo</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+</head>
+<body>
+
+	<div class="container" id="main">
+<a href="#" @click="mostarPreguntas" v-if="agregarUnaPreguntas">Jugar </a>
+<a href="#" @click="mostarFormulario" v-if="jugar">Añadir pregunta</a>
+		<div class="row" v-if="jugar">
+			<h1 v-text="tituloPregunta"></h1>
+			<div class="col-md-12">
+				<div class="checkbox" v-for="item in todasLasOpciones">
+				  <label><input type="checkbox" :value="item" v-model="respuestas">{{item}}</label>
+				</div>					
+				<button @click="siguientePregunta" class="btn btn-primary">comprueba</button>
+				
+				<div class="row">
+					<div class="col-md-6" 
+					v-bind:class="{'alert alert-success': sobraron.length > 0}">
+						<span v-if="sobraron.length > 0">sobraron</span>
+						<ul>
+							 <li v-for="item in sobraron">
+	    						{{ item }}
+	  						</li>
+						</ul>
+					</div>
+
+					<div class="col-md-6" 
+					v-bind:class="{'alert alert-danger': faltaron.length > 0}"
+					>
+						<span v-if="faltaron.length > 0">faltaron</span>
+						<ul>
+							<li v-for="item in faltaron">
+	    						{{ item }}
+	  						</li>
+						</ul>
+					</div>
+				</div>
+
+			</div>
+				
+			 
+		</div>
+
+		
+		<div v-if="agregarUnaPreguntas">
+			
+			<h3 class="text-center">Titulo pregunta</h3>
+			<input type="text" class="form-control" v-model="tituloPregunta">
+			<h3 class="text-center">Opciones</h3>
+			<div class="row">
+
+				<div class="col-md-6">
+					<span>correctas</span>			
+					<input type="text" class="form-control" name="entradasCorrectas">
+					<input type="text" class="form-control" name="entradasCorrectas">
+					<input type="text" class="form-control" name="entradasCorrectas">
+					<input type="text" class="form-control" name="entradasCorrectas">
+				</div>
+				<div class="col-md-6">
+					<span>incorrenctas</span>
+					<input type="text" class="form-control" name="entradasIncorrectas">
+					<input type="text" class="form-control" name="entradasIncorrectas">
+					<input type="text" class="form-control" name="entradasIncorrectas">
+					<input type="text" class="form-control" name="entradasIncorrectas">
+				</div>
+
+				<div class="text-center">	
+					<button class="btn btn-success" @click="agregarPreguntas">agregar pregunta</button> 
+				</div>
+				 <!--  
+				 	<pre class="col-md-6">{{$data}}</pre> 
+				 	-->
+			</div>
+		</div>
+		
+	</div>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+
+<script type="text/javascript">
+var app = new Vue({
+el: '#main',
+created: function() 
+{
+		
+},
+data: 
+{
+	tituloPregunta:"ingrese el titulo de la pregunta",
+	correctas:[],
+	incorrectas:[],
+	todasLasOpciones:[], // corecctas + incorrectas
+	respuestas:[],
+	faltaron:[],
+	sobraron:[],
+	resultado:"",
+	agregarUnaPreguntas:true,
+	jugar:false,
+	//preguntas a agregar en el local storage
+	preguntas:[],
+	indicePregunta:0,
+},
+methods: 
+{
+	comprueba:function()
+	{
+		this.sobraron=[]
+		this.faltaron=[]
+		this.correctas.forEach(e=>{
+
+			if(this.respuestas.includes(e) == false){
+				this.faltaron.push(e)
+			}
+		})
+
+		this.respuestas.forEach(e=>{
+
+		
+			if(this.correctas.includes(e) == false){
+				this.sobraron.push(e)
+			}
+		})
+
+
+	},
+	muestraResultado:function(){
+		if(this.faltaron.length== 0 && this.sobraron.length==0){
+			this.resultado="correcto"
+		}
+		else{
+			this.resultado="incorrecto"
+		}
+	},
+	siguientePregunta:function(){
+		this.comprueba()
+		this.muestraResultado()
+	},
+	
+	asignaCorrectas:function(){
+		this.correctas=[]
+		document.getElementsByName("entradasCorrectas").forEach(function(e){
+			if(e.value != "")
+			app.$data.correctas.push(e.value)
+			
+		})
+	},
+	asignaIncorrectas:function(){
+		this.incorrectas=[]
+		document.getElementsByName("entradasIncorrectas").forEach(function(e){
+			if(e.value != "")
+			app.$data.incorrectas.push(e.value)
+			
+		})
+	},
+	agregarPreguntas:function(){
+		this.asignaCorrectas()
+		this.asignaIncorrectas()
+		this.pintarOpciones()
+		this.guardarTarea()
+	},
+
+	pintarOpciones:function(){
+		// unir arrar
+		this.todasLasOpciones=this.correctas.concat(this.incorrectas)
+		// desordenar array
+		 this.todasLasOpciones = this.todasLasOpciones.sort(function(){return Math.random()-0.5})
+		// 
+	},
+	mostarPreguntas:function(){
+		
+
+		this.jugar = true;
+		this.agregarUnaPreguntas= false
+	},
+	mostarFormulario:function(){
+		this.jugar = false;
+		this.agregarUnaPreguntas= true
+	},
+
+	guardarTarea: function(){
+      this.preguntas.push({
+        tituloPregunta: this.tituloPregunta ,
+        correctas: this.correctas , 
+        incorrectas: this.incorrectas, 
+      });
+      //this.nuevaTarea = '';
+      localStorage.setItem('preguntas-local', JSON.stringify(this.preguntas));
+      console.log(localStorage['preguntas-local']),
+      this.tituloPregunta="";
+
+      document.getElementsByName("entradasCorrectas").forEach(function(e){
+			e.value=""
+			
+		})
+      document.getElementsByName("entradasIncorrectas").forEach(function(e){
+			e.value=""
+			
+		})
+    },
+    
+
+
+},
+	created: function(){
+    let datosDB = JSON.parse(localStorage.getItem('preguntas-local'));
+    if(datosDB === null){
+      this.preguntas = [];
+    }else{
+      this.preguntas = datosDB;
+    }
+  },
+})
+
+
+
+
+
+/* const app = new Vue({
+  
+  el: '#app',
+  data: {
+    titulo: 'GYM con Vue',
+    tareas: [],
+    nuevaTarea: ''
+  },
+  methods:{
+    agregarTarea: function(){
+      this.tareas.push({
+        nombre: this.nuevaTarea,
+        estado: false
+      });
+      this.nuevaTarea = '';
+      localStorage.setItem('gym-vue', JSON.stringify(this.tareas));
+    },
+    editarTarea: function(index){
+      this.tareas[index].estado = !this.tareas[index].estado ;
+      localStorage.setItem('gym-vue', JSON.stringify(this.tareas));
+    },
+    eliminar: function(index){
+      this.tareas.splice(index, 1);
+      localStorage.setItem('gym-vue', JSON.stringify(this.tareas));
+    }
+  },
+  created: function(){
+    let datosDB = JSON.parse(localStorage.getItem('gym-vue'));
+    if(datosDB === null){
+      this.tareas = [];
+    }else{
+      this.tareas = datosDB;
+    }
+  }
+
+
+});
+*/
+</script>
+</body>
+</html>

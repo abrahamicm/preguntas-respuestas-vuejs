@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>col duolingo</title>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container" id="main">
+	<div class="row">
+		<h1 v-text="pregunta.tituloPregunta"></h1>
+		<div class="col-md-12">
+			<div class="checkbox" v-for="item in todasLasOpciones">
+			  <label><input type="checkbox" :value="item" v-model="respuestas">{{item}}</label>
+			</div>					
+			<button @click="siguientePregunta" class="btn btn-primary">comprueba</button>
+			
+			<div class="row">
+				<div class="col-md-6" 
+				v-bind:class="{'alert alert-success': sobraron.length > 0}">
+					<span v-if="sobraron.length > 0">sobraron</span>
+					<ul>
+						 <li v-for="item in sobraron">
+    						{{ item }}
+  						</li>
+					</ul>
+				</div>
+
+				<div class="col-md-6" 
+				v-bind:class="{'alert alert-danger': faltaron.length > 0}"
+				>
+					<span v-if="faltaron.length > 0">faltaron</span>
+					<ul>
+						<li v-for="item in faltaron">
+    						{{ item }}
+  						</li>
+					</ul>
+				</div>
+			</div>
+
+		</div>
+			
+		 
+	</div>
+
+		<pre>{{$data}}</pre>
+</div>
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/general.js"></script>
+<script type="text/javascript" src="js/vue.js"></script>
+
+<script type="text/javascript">
+var app = new Vue({
+el: '#main',
+created: function() 
+{
+	let datosDB = JSON.parse(localStorage.getItem('preguntas-local'));
+    if(datosDB === null){
+      this.preguntas = [];
+    }else{
+      this.preguntas = datosDB;
+    }
+    //console.log(this.preguntas)	
+    this.pregunta=this.preguntas[this.i]
+
+},
+mounted:function(){
+console.log(this.preguntas)
+this.pintarOpciones()
+},
+data: 
+{
+
+	todasLasOpciones:[],
+	sobraron:[],
+	faltaron:[],
+	respuestas:[],
+	
+	pregunta:{},
+	preguntas:[],
+	i:0,
+},
+methods: 
+{
+	siguientePregunta:function(){
+		this.comprueba()
+		this.muestraResultado()
+		this.siguiente()
+		
+
+	},
+	
+	comprueba:function()
+	{
+		this.sobraron=[]
+		this.faltaron=[]
+		this.pregunta.correctas.forEach(e=>{
+
+			if(this.respuestas.includes(e) == false){
+				this.faltaron.push(e)
+			}
+		})
+
+		this.respuestas.forEach(e=>{
+
+		
+			if(this.pregunta.correctas.includes(e) == false){
+				this.sobraron.push(e)
+			}
+		})
+
+
+	},
+		muestraResultado:function(){
+		if(this.faltaron.length== 0 && this.sobraron.length==0){
+			this.resultado="correcto"
+		}
+		else{
+			this.resultado="incorrecto"
+		}
+	},
+	pintarOpciones:function(){
+		// unir arrar
+		this.todasLasOpciones=this.pregunta.correctas.concat(this.pregunta.incorrectas)
+		// desordenar array
+		 this.todasLasOpciones = this.todasLasOpciones.sort(function(){return Math.random()-0.5})
+		// 
+	},
+	siguiente:function(){
+		this.i++
+		if(this.i >= this.preguntas.length){
+			this.i =0
+		}
+		//console.log(this.i)
+		this.pregunta=this.preguntas[this.i]
+		this.pintarOpciones()
+		this.respuestas = []
+	}	
+
+}
+})
+
+
+
+</script>
+</body>
+</html>
